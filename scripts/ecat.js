@@ -9,7 +9,6 @@ let upc;
 (async () => {
     password = (await chrome.storage.local.get("password"))["password"];
 
-    // I don't remember if these are actually useful
     auto_mode = (await chrome.storage.local.get("auto"))["auto"];
     upc = (await chrome.storage.local.get("upc"))["upc"];
     console.log(upc);
@@ -81,4 +80,5 @@ function imitateKeyInput(el, keyChar) {
     } else {
         console.log("el is null");
     }
+
 }
