@@ -4,6 +4,7 @@ body {
     flex-direction: column;
     height: 100vh;
 }
+
 .options-container {
     background: lightgray;
     padding: 10px;
@@ -11,6 +12,23 @@ body {
     display: flex;
     justify-content: space-evenly;
 }
+
+.po-item-info {
+    display: none;
+    font-weight: bold;
+    text-indent: 5px;
+    background: lightgoldenrodyellow;
+}
+
+.item-disclaimer {
+    font-size: 0.85em;
+    font-style: italic;
+    color: #666;
+    margin-left: 8px;
+    border-left: 1px solid #ccc;
+    padding-left: 8px;
+}
+
 iframe {
     flex-grow: 1;
     width: 100%;

@@ -1,93 +1,76 @@
 
 
 document.addEventListener("DOMContentLoaded", async load_event => {
-    document.querySelector('form#rona-password').addEventListener('submit', (async (event) => {
-        await event.preventDefault(); // Prevent the default form submission
+  document.querySelector('form#rona-password').addEventListener('submit', (async (event) => {
+    await event.preventDefault(); // Prevent the default form submission
 
-        let pass = await document.getElementById('ronaPasswordInput');
-        if (pass.value.length > 8) {
-            await chrome.storage.local.set({password: pass.value});
-            pass.value = '';
-        }
-    }));
-
-    const fileInput = document.getElementById('fileInput');
-    fileInput.addEventListener('change', async (event) => {
-        if (fileInput.files.length === 1) {
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = function () {
-                const content = reader.result;
-                const lines = content.split('\r\n');
-                let newLines = [];
-                let i = 0;
-                let working = false;
-                let InvoiceNumber;
-                let PurchaseOrderNumber;
-                while (i < lines.length - 1) {
-                    if (lines[i].startsWith("INVOICE,,,,,,,,,,")) {
-                        working = true;
-                        i += 3;
-                        InvoiceNumber = lines[i].split(',')[7].replace("Order: ", "");
-                        i++;
-                        PurchaseOrderNumber = lines[i].split(',')[7].replace("Cust PO: ", "");
-                        i += 9
-                    }
-                    if (working) {
-                        let newLine = reformatLineItem(lines[i], PurchaseOrderNumber, InvoiceNumber);
-                        if (newLine === null) {
-                            working = false;
-                            download(PurchaseOrderNumber, newLines);
-                            newLines = [];
-                        } else {
-                            newLines.push(newLine)
-                        }
-                    }
-
-                    i++;
-                }
-            };
-            reader.readAsText(file);
-        }
-    });
-});
-
-function reformatLineItem(text, PO, invoice) {
-    let items = text.split(',')
-
-    // detects if finished
-    if (items[1] === "'0000000") {
-        return null;
+    let pass = await document.getElementById('ronaPasswordInput');
+    if (pass.value.length > 8) {
+      await chrome.storage.local.set({ password: pass.value });
+      pass.value = '';
     }
+  }));
 
-    // deletes unrequired data
-    items.splice(3, 3);
-    items.splice(4, 2);
-    items.splice(5, 1);
+  fileInput.addEventListener('change', async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    // corrects data
-    items[0] = '1';
-    items[1] = items[1].replace("'", "OR");
-    items[4] = items[4].replace("'", "");
+    const reader = new FileReader();
 
-    // inserts PO and Invoice
-    items.splice(1, 0, '' + PO)
-    items.splice(1, 0, '' + invoice)
+    reader.onload = async (e) => {
+      const csvData = e.target.result;
+      const rows = csvData.split('\n').filter(row => row.trim() !== '');
+      const headers = rows[0].split(',').map(h => h.trim());
 
-    return items.join(",");
+      const skuIdx = headers.indexOf('SKU');
+      const upcIdx = headers.indexOf('UPC+');
+      const qooIdx = headers.indexOf('QOO (Stk)');
+      const umIdx = headers.indexOf('U/M (Stk)');
+      const costIdx = headers.indexOf('Cost (Stk)');
+      const retailIdx = headers.indexOf('Current Retail');
 
-}
+      const inventoryMap = {};
+      let rowCount = 0;
 
-function download(PurchaseOrderNumber, newLines) {
-    var a = window.document.createElement('a');
-    a.href = window.URL.createObjectURL(new Blob([newLines.join("\r\n")], {type: 'text/csv'}));
-    a.download = 'Orgill-' + PurchaseOrderNumber + '.csv';
+      rows.slice(1).forEach(row => {
+        const columns = row.split(',');
 
-    // Append anchor to body.
-    document.body.appendChild(a);
-    a.click();
+        const sku = columns[skuIdx]?.trim();
+        const upc = columns[upcIdx]?.trim();
 
-    // Remove anchor from body
-    document.body.removeChild(a);
-}
+        // Helper function to handle N/A and trailing zeros
+        const formatValue = (val) => {
+          const trimmed = val?.trim();
+          // If empty, null, or undefined, return N/A
+          if (!trimmed || trimmed === "") return "N/A";
+          // Convert to number to strip trailing zeros, then back to string
+          return Number(trimmed).toString();
+        };
 
+        const qoo = formatValue(columns[qooIdx]);
+        const um = columns[umIdx]?.trim() || "N/A";
+        const cost = formatValue(columns[costIdx]);
+        const retail = formatValue(columns[retailIdx]);
+
+        const detailString = `${qoo} ${um} @ ${cost} (${retail})`;
+
+        if (sku && sku !== "") {
+          inventoryMap[sku] = detailString;
+          rowCount++;
+        }
+        if (upc && upc !== "" && upc !== sku) {
+          inventoryMap[upc] = detailString;
+        }
+      });
+
+      // Save to storage
+      await chrome.storage.local.set({ inventoryData: inventoryMap });
+
+      // Alert the user
+      alert(`Success! Updated ${rowCount} items from "${file.name}".`);
+      console.log("Inventory synced with details!");
+    };
+
+    reader.readAsText(file);
+  });
+});

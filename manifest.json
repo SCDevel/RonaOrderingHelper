@@ -1,41 +1,62 @@
 {
-    "manifest_version": 3,
-    "name": "Tools",
-    "version": "1.0",
-    "description": "Tools to HELP with work",
-    "background": {
-        "service_worker": "scripts/service.js"
+  "manifest_version": 3,
+  "name": "Tools",
+  "version": "1.0",
+  "description": "Tools to HELP with work",
+  "background": {
+    "service_worker": "scripts/service.js"
+  },
+  "side_panel": {
+    "default_path": "html/sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://ecat.rona.ca/*"
+      ],
+      "js": [
+        "scripts/ecat.js"
+      ],
+      "all_frames": true
     },
-    "side_panel": {
-      "default_path": "html/sidepanel.html"
+    {
+      "matches": [
+        "*://erona.rona.ca/webapp/erona/Disconnect.jsp"
+      ],
+      "js": [
+        "scripts/erona.js"
+      ]
     },
-    "content_scripts": [
-        {
-            "matches": ["*://ecat.rona.ca/*"],
-            "js": ["scripts/ecat.js"],
-            "all_frames": true
-        },
-        {
-            "matches": ["*://erona.rona.ca/webapp/erona/Disconnect.jsp"],
-            "js": ["scripts/erona.js"]
-        },
-        {
-            "matches": ["*://www.rona.ca/*", "*://rona.ca/*"],
-            "js": ["scripts/rona.js"]
-        },
-        {
-            "matches": ["*://*.orgill.ca/*"],
-            "js": ["scripts/orgill.js"]
-        },
-
-        {
-            "matches": ["*://nanaimo.coastdistributors.com/*"],
-            "js": ["scripts/coast.js"]
-        }
-    ],
-    "permissions": [
-        "sidePanel",
-        "storage",
-        "tabs"
-    ]
+    {
+      "matches": [
+        "*://www.rona.ca/*",
+        "*://rona.ca/*"
+      ],
+      "js": [
+        "scripts/rona.js"
+      ]
+    },
+    {
+      "matches": [
+        "*://*.orgill.ca/*"
+      ],
+      "js": [
+        "scripts/orgill.js"
+      ]
+    },
+    {
+      "matches": [
+        "*://nanaimo.coastdistributors.com/*"
+      ],
+      "js": [
+        "scripts/coast.js"
+      ]
+    }
+  ],
+  "permissions": [
+    "sidePanel",
+    "unlimitedStorage",
+    "storage",
+    "tabs"
+  ]
 }
