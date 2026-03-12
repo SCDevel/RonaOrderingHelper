@@ -36,6 +36,8 @@ chrome.storage.local.onChanged.addListener(async (changes) => {
     if (upc !== undefined) {
       const qooValue = await getQuantity(upc);
 
+      await appendLog(upc, qooValue || "");
+
       const container = document.querySelector('.po-item-info');
       const skuSpan = document.getElementById('item-sku');
       const qooSpan = document.getElementById('item-details');
@@ -67,4 +69,33 @@ async function getQuantity(searchTerm) {
     console.log("Item not found.");
     return undefined;
   }
+}
+
+
+const MAX_LOG_ITEMS = 2000;
+
+
+async function appendLog(upc, value) {
+  const { upcLog = { index: [], records: {} } } =
+    await chrome.storage.local.get("upcLog");
+
+  const id = Date.now().toString();
+
+  upcLog.records[id] = {
+    upc,
+    value,
+    datetime: Date.now(),
+  };
+
+  upcLog.index.push(id);
+
+  if (upcLog.index.length > MAX_LOG_ITEMS) {
+    const removeIds = upcLog.index.splice(0, upcLog.index.length - MAX_LOG_ITEMS);
+
+    for (const rid of removeIds) {
+      delete upcLog.records[rid];
+    }
+  }
+
+  await chrome.storage.local.set({ upcLog });
 }

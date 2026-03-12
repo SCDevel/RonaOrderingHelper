@@ -80,5 +80,4 @@ function imitateKeyInput(el, keyChar) {
     } else {
         console.log("el is null");
     }
-
 }

@@ -2,13 +2,20 @@
 
 document.addEventListener("DOMContentLoaded", async load_event => {
   document.querySelector('form#rona-password').addEventListener('submit', (async (event) => {
-    await event.preventDefault(); // Prevent the default form submission
+    event.preventDefault();
 
-    let pass = await document.getElementById('ronaPasswordInput');
+    let pass = document.getElementById('ronaPasswordInput');
     if (pass.value.length > 8) {
       await chrome.storage.local.set({ password: pass.value });
       pass.value = '';
     }
+  }));
+
+  document.querySelector('form#export-form').addEventListener('submit', (async (event) => {
+    event.preventDefault();
+    console.log("Log Export: Started!");
+    exportUPCLogCSV();
+    console.log("Log Export: Finished!")
   }));
 
   fileInput.addEventListener('change', async (event) => {
@@ -74,3 +81,37 @@ document.addEventListener("DOMContentLoaded", async load_event => {
     reader.readAsText(file);
   });
 });
+
+async function exportUPCLogCSV() {
+  const { upcLog } = await chrome.storage.local.get("upcLog");
+  if (!upcLog) return;
+
+  const rows = [];
+
+  // header
+  rows.push(["UPC", "QOO?", "Datetime"]);
+
+  for (const id of upcLog.index) {
+    const r = upcLog.records[id];
+
+    rows.push([
+      r.upc,
+      r.value,
+      new Date(r.datetime).toISOString()
+    ]);
+  }
+
+  const csv = rows.map(r => r.join(",")).join("\n");
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "upc_log.csv";
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
