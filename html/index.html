@@ -2,38 +2,74 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <script type="module" src="../scripts/index.js"></script>
     <link rel="stylesheet" href="../css/index.css">
 </head>
-
 <body>
-
 <div class="container">
-
-    <h1>Extension Settings</h1>
+    <header class="page-header">
+        <div class="header-tag">RONA</div>
+        <h1>Extension Settings</h1>
+    </header>
 
     <div class="card">
-        <label for="fileInput">Rona Order Info Display</label>
-        <input type="file" id="fileInput" accept=".csv">
+        <div class="card-label">Order Info Display</div>
+        <label class="file-upload-label" for="fileInput">
+            <span class="upload-icon">↑</span>
+            <span id="fileInputName">Upload inventory CSV</span>
+            <input type="file" id="fileInput" accept=".csv">
+        </label>
     </div>
 
     <div class="card">
+        <div class="card-label">Store Password</div>
         <form id="rona-password">
-            <label for="ronaPasswordInput">Change Rona Password</label>
             <div class="input-row">
-                <input type="password" id="ronaPasswordInput">
-                <button id="submitButton" type="submit">Save</button>
+                <input type="password" id="ronaPasswordInput" placeholder="New password (8+ chars)">
+                <button id="submitButton" type="submit" class="btn btn-primary">Save</button>
             </div>
         </form>
     </div>
 
     <div class="card">
+        <div class="card-label">Data Export</div>
         <form id="export-form">
-            <button type="submit" class="export-btn">Export UPC Log</button>
+            <button type="submit" class="btn btn-secondary">↓ Export UPC Log</button>
         </form>
     </div>
 
-</div>
+    <div class="card card-wide">
+        <div class="card-label">Invoice Reconciliation</div>
+        <div class="upload-row">
+            <label class="file-upload-label" for="receivingCsvInput">
+                <span class="upload-icon">↑</span>
+                <span id="csvInputName">Receiving CSV</span>
+                <input type="file" id="receivingCsvInput" accept=".csv">
+            </label>
+            <label class="file-upload-label" for="invoicePdfInput">
+                <span class="upload-icon">↑</span>
+                <span id="pdfInputName">Invoice PDF</span>
+                <input type="file" id="invoicePdfInput" accept=".pdf">
+            </label>
+        </div>
+        <button id="compareBtn" class="btn btn-primary btn-full" disabled>Compare Extended Costs</button>
+        <div id="compareStatus" class="compare-status"></div>
 
+        <div id="compareResults" class="compare-results" style="display:none;">
+            <div id="compareSummary" class="compare-summary"></div>
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="col-cost">Cost</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
 </body>
 </html>
